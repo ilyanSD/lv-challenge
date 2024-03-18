@@ -1,8 +1,6 @@
-import Image from "next/image";
-
 export default function Home() {
   return (
-    <main className="flex flex-col p-6 w-full md:h-[120px] rounded-[12px] bg-[#F2F2F2] gap-2 main-border md:mx-0 mt-[25px]">
+    <main className="flex flex-col p-6 w-full md:h-[120px] rounded-[12px] bg-[#F2F2F2] gap-2 main-border md:mx-0 mt-[24px]">
       <span className="font-semibold text-[14px] leading-[19.6px]">
         Log in to start using our app
       </span>
