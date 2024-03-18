@@ -1,10 +1,7 @@
-// Route to get all campaigns from the database
-
-import { NextApiRequest } from "next";
 import { dbConnect } from "@/utils/mongodb";
 import { Campaign } from "@/models";
 
-export async function GET(req: NextApiRequest) {
+export async function GET(req: Request) {
   await dbConnect();
 
   try {
