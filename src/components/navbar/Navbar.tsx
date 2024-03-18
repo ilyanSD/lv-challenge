@@ -1,7 +1,7 @@
 "use client";
 
 import Image from 'next/image'
-import React, { useState, useEffect, use, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import PulseLoader from 'react-spinners/PulseLoader';
 import { usePathname } from 'next/navigation';
 
@@ -52,26 +52,31 @@ const Navbar = () => {
         }
   
       } catch (error) {
+        setIsSigning(false);
+        setModalOpen(false);
         console.log("Error Occured", error);
       }
     }
   }
 
-  const handleOpenModal = () => {
-    if (isConnected) {
-      handleSigning();
-    } else {
-      setModalOpen(true);
-    }
-  }
+  const handleOpenModal = useCallback(() => {
+    setModalOpen(true);
+  }, [])
 
   const handleCloseModal = useCallback(() => {
     setModalOpen(false);
   }, [])
 
-  const { disconnectAsync } = useDisconnect();
+  const { disconnect } = useDisconnect();
   
   const handleSignout = async () => {
+    try {
+      if (isConnected) {
+        disconnect();
+      }
+    } catch (error) {
+      console.error("Error Occured", error);
+    }
     signOut({callbackUrl:"/"});
   };
 
@@ -94,16 +99,14 @@ const Navbar = () => {
   }, [address])
 
   useEffect(() => {
-    if (isConnected) {
+    if (status === 'authenticated') {
       setModalOpen(false);
     }
-  }, [isConnected])
+  }, [status])
 
   return (
     <header className="h-[72px] flex justify-between w-full items-center">
-      <span className="font-bold text-[18px] leading-[23.4px]">{
-        pathname.startsWith('/dashboard') ? 'Dashboard' : 'Explore'
-      }</span>
+      <span className="font-bold text-[18px] leading-[23.4px]">{pageTitle}</span>
 
       {
         (status === 'loading' || isSigning && status !== 'authenticated') ? <PulseLoader color="#B958D6" size={6} /> :
@@ -114,15 +117,16 @@ const Navbar = () => {
                 <Image width={15.83} height={15.83} src="/login/diamond.svg" alt="Diamond" />
                 <span className="text-[14px] leading-[18.2px] text-white font-semibold">Log in</span>
               </button> :
-              <button className="flex h-[40px] py-[6px] pr-[16px] pl-[12px] items-center gap-[8px] rounded-[32px] login-button" onClick={handleSignout}>
-                <Image width={15.83} height={15.83} src="/login/diamond.svg" alt="Diamond" />
-                <span className="text-[14px] leading-[18.2px] text-white font-semibold">Log out</span>
+              <button className="flex items-center gap-3 py-1 pr-4 pl-2 rounded-[32px] border border-[#E8E8E8] h-[40px] min-w-[210px]" onClick={handleSignout}>
+                <img className='rounded-[40px] w-[24px] h-[24px]' src={session.user?.image!} alt="Profile Picture" />
+                <span className="text-[14px] flex-grow text-start leading-[18.2px] font-semibold">{session.user?.name}</span>
+                <Image width={24} height={24} src="/dropdown.svg" alt="Arrow" />
               </button>
             } 
           </>
       }    
 
-      <LogInModal isOpen={isModalOpen} onClose={handleCloseModal} />
+      <LogInModal isOpen={isModalOpen} onClose={handleCloseModal} handleSigning={handleSigning} isWeb3Connected={isConnected} />
     </header>
   )
 }

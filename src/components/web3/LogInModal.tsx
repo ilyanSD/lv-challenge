@@ -1,23 +1,34 @@
 "use client";
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import Image from 'next/image'
-import { useWeb3Modal } from '@web3modal/wagmi/react'
-import { useAccount } from 'wagmi'
+import { useWeb3Modal, useWeb3ModalEvents } from '@web3modal/wagmi/react'
+import { signIn, useSession } from "next-auth/react";
 
 import './web3.css'
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  handleSigning: () => void;
+  isWeb3Connected: boolean;
 }
 
-const LogInModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
+const LogInModal: React.FC<ModalProps> = ({ isOpen, onClose, handleSigning, isWeb3Connected }) => {
 
   const { open } = useWeb3Modal()
-  const { isConnected } = useAccount();
+  const { data: session, status } = useSession();
+  const events = useWeb3ModalEvents();
 
-  if (!isOpen || isConnected) {
+  const handleWeb3Login = async () => {
+    if (isWeb3Connected) {
+      handleSigning();
+    } else {
+      open();
+    }
+  }
+
+  if (!isOpen || status === "authenticated") {
     return null;
   }
 
@@ -34,12 +45,17 @@ const LogInModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
             </span>
           </div>
           <div className="flex flex-col gap-[18px]">
-            <button className="bg-black rounded-[56px] p-4 pl-[21px] flex items-center gap-2" onClick={() => { open() }}>
-              <Image loading='eager' width={24} height={24} src="/web3/metamask.svg" alt='Metamask' />
-              <span className="text-white font-semibold text-[14px] leading-[22.4px] flex-grow text-start">Connect Metamask</span>
+            <button className="bg-black rounded-[56px] p-4 pl-[21px] flex items-center gap-2" onClick={() => { 
+                signIn("twitter", {
+                  callbackUrl: "/dashboard",
+                  redirect: true,
+                });
+              }}>
+              <Image loading='eager' width={24} height={24} src="/login/twitter.svg" alt='Twitter' />
+              <span className="text-white font-semibold text-[14px] leading-[22.4px] flex-grow text-start">Connect Twitter</span>
               <Image loading='eager' width={24} height={24} src="/web3/arrow.svg" alt='Arrow' />
             </button>
-            <button className="bg-black rounded-[56px] p-4 pl-[21px] flex items-center gap-2" onClick={() => { open() }}>
+            <button className="bg-black rounded-[56px] p-4 pl-[21px] flex items-center gap-2" onClick={handleWeb3Login}>
               <Image loading='eager' width={24} height={24} src="/web3/walletconnect.svg" alt='WalletConnect' />
               <span className="text-white font-semibold text-[14px] leading-[22.4px] flex-grow text-start">Connect WalletConnect</span>
               <Image loading='eager' className="" width={24} height={24} src="/web3/arrow.svg" alt='Arrow' />
